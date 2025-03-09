@@ -11,6 +11,9 @@ class StoreViewModel : ViewModel() {
     private val _cart = MutableLiveData<MutableList<CartItem>>(mutableListOf())
     val cart: LiveData<MutableList<CartItem>> = _cart
 
+    // Простое хранилище пользователей (в реальном приложении используйте БД)
+    private val users = mutableMapOf<String, String>() // username -> password
+
     init {
         loadProducts()
     }
@@ -35,7 +38,6 @@ class StoreViewModel : ViewModel() {
             currentCart.add(CartItem(product, 1))
             println("Added new item: ${product.name}")
         }
-        // Явно устанавливаем новое значение, чтобы LiveData уведомило подписчиков
         _cart.value = currentCart
         println("Current cart size: ${currentCart.size}")
     }
@@ -57,5 +59,21 @@ class StoreViewModel : ViewModel() {
             println("Updated quantity for ${cartItem.product.name} to $newQuantity")
         }
         _cart.value = currentCart
+    }
+
+    // Логика логина
+    fun login(username: String, password: String): Boolean {
+        return users[username] == password && username.isNotEmpty() && password.isNotEmpty()
+    }
+
+    // Логика регистрации
+    fun register(username: String, password: String): Boolean {
+        return if (username.isNotEmpty() && password.isNotEmpty() && !users.containsKey(username)) {
+            users[username] = password
+            println("Registered new user: $username")
+            true
+        } else {
+            false
+        }
     }
 }

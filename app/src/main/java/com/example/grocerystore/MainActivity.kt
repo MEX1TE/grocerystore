@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.grocerystore.data.StoreViewModel
+import com.example.grocerystore.screens.LoginScreen
 import com.example.grocerystore.theme.GroceryStoreTheme
 import com.example.grocerystore.ui.screens.CartScreen
 import com.example.grocerystore.ui.screens.ProductListScreen
@@ -26,9 +27,12 @@ class MainActivity : ComponentActivity() {
 fun GroceryStoreApp() {
     GroceryStoreTheme {
         val navController = rememberNavController()
-        val viewModel: StoreViewModel = viewModel() // Создаём ViewModel здесь
+        val viewModel: StoreViewModel = viewModel()
 
-        NavHost(navController = navController, startDestination = "products") {
+        NavHost(navController = navController, startDestination = "login") {
+            composable("login") {
+                LoginScreen(navController, viewModel)
+            }
             composable("products") {
                 ProductListScreen(navController, viewModel)
             }
