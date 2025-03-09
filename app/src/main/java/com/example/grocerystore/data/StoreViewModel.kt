@@ -25,29 +25,36 @@ class StoreViewModel : ViewModel() {
     }
 
     fun addToCart(product: Product) {
-        val currentCart = _cart.value ?: mutableListOf()
+        val currentCart = _cart.value?.toMutableList() ?: mutableListOf()
         val existingItem = currentCart.find { it.product.id == product.id }
 
         if (existingItem != null) {
             existingItem.quantity++
+            println("Increased quantity for ${product.name} to ${existingItem.quantity}")
         } else {
             currentCart.add(CartItem(product, 1))
+            println("Added new item: ${product.name}")
         }
+        // Явно устанавливаем новое значение, чтобы LiveData уведомило подписчиков
         _cart.value = currentCart
+        println("Current cart size: ${currentCart.size}")
     }
 
     fun removeFromCart(cartItem: CartItem) {
-        val currentCart = _cart.value ?: return
+        val currentCart = _cart.value?.toMutableList() ?: return
         currentCart.remove(cartItem)
         _cart.value = currentCart
+        println("Removed item. Current cart size: ${currentCart.size}")
     }
 
     fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
-        val currentCart = _cart.value ?: return
+        val currentCart = _cart.value?.toMutableList() ?: return
         if (newQuantity <= 0) {
             currentCart.remove(cartItem)
+            println("Removed item due to quantity 0")
         } else {
             cartItem.quantity = newQuantity
+            println("Updated quantity for ${cartItem.product.name} to $newQuantity")
         }
         _cart.value = currentCart
     }

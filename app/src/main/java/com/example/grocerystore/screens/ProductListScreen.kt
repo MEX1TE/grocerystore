@@ -1,16 +1,14 @@
-package com.example.grocerystore.screens
+package com.example.grocerystore.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.grocerystore.data.Product
 import com.example.grocerystore.data.StoreViewModel
@@ -19,9 +17,9 @@ import com.example.grocerystore.data.StoreViewModel
 @Composable
 fun ProductListScreen(
     navController: NavController,
-    viewModel: StoreViewModel = viewModel()
+    viewModel: StoreViewModel
 ) {
-    val products by viewModel.products.observeAsState(emptyList())
+    val products = viewModel.products.observeAsState(emptyList()).value
 
     Scaffold(
         topBar = {
@@ -41,7 +39,7 @@ fun ProductListScreen(
                 .padding(16.dp)
         ) {
             items(products) { product ->
-                ProductItem(product, onAddToCart = { viewModel.addToCart(product) })
+                ProductItem(product = product, onAddToCart = { viewModel.addToCart(product) })
             }
         }
     }
@@ -66,7 +64,10 @@ fun ProductItem(product: Product, onAddToCart: () -> Unit) {
                 Text(text = product.description, style = MaterialTheme.typography.bodySmall)
                 Text(text = "$${product.price}", style = MaterialTheme.typography.bodyMedium)
             }
-            Button(onClick = onAddToCart) {
+            Button(onClick = {
+                onAddToCart()
+                println("Button clicked for ${product.name}")
+            }) {
                 Text("Добавить")
             }
         }
