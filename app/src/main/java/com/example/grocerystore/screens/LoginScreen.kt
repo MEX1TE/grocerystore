@@ -1,4 +1,4 @@
-package com.example.grocerystore.screens
+package com.example.grocerystore.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,11 +16,12 @@ import com.example.grocerystore.data.StoreViewModel
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: StoreViewModel
+    viewModel: StoreViewModel,
+    onLoginSuccess: (Int) -> Unit // Добавляем колбек для передачи userId
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoginMode by remember { mutableStateOf(true) } // true - логин, false - регистрация
+    var isLoginMode by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
     Scaffold(
@@ -38,7 +39,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Поле для имени пользователя
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -48,7 +48,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Поле для пароля
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -60,7 +59,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Сообщение об ошибке
             if (errorMessage.isNotEmpty()) {
                 Text(
                     text = errorMessage,
@@ -69,26 +67,36 @@ fun LoginScreen(
                 )
             }
 
-            // Кнопка действия (Войти/Зарегистрироваться)
             Button(
                 onClick = {
                     if (isLoginMode) {
-                        // Логин
-                        if (viewModel.login(username, password)) {
-                            navController.navigate("products") {
-                                popUpTo("login") { inclusive = true } // Убираем экран логина из стека
+                        viewModel.login(username, password) { success, id, error ->
+                            if (success && id != null) {
+                                onLoginSuccess(id) // Передаём userId
+                                navController.navigate("products") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = error ?: "Ошибка входа"
                             }
-                        } else {
-                            errorMessage = "Неверное имя пользователя или пароль"
                         }
                     } else {
-                        // Регистрация
-                        if (viewModel.register(username, password)) {
-                            navController.navigate("products") {
-                                popUpTo("login") { inclusive = true }
+                        viewModel.register(username, password) { success, error ->
+                            if (success) {
+                                // После регистрации сразу логинимся для получения userId
+                                viewModel.login(username, password) { loginSuccess, id, loginError ->
+                                    if (loginSuccess && id != null) {
+                                        onLoginSuccess(id)
+                                        navController.navigate("products") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    } else {
+                                        errorMessage = loginError ?: "Ошибка после регистрации"
+                                    }
+                                }
+                            } else {
+                                errorMessage = error ?: "Ошибка регистрации"
                             }
-                        } else {
-                            errorMessage = "Пользователь уже существует или данные некорректны"
                         }
                     }
                 },
@@ -99,7 +107,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Кнопка переключения между логином и регистрацией
             TextButton(onClick = { isLoginMode = !isLoginMode }) {
                 Text(if (isLoginMode) "Нет аккаунта? Зарегистрируйтесь" else "Уже есть аккаунт? Войдите")
             }
